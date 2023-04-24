@@ -3,8 +3,8 @@ run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
 on:
   push:
     paths:
-      - '!a/b/**'
-      - 'a/**'
+      - 'a/b/'
+      # - 'a/**'
 jobs:
   Explore-GitHub-Actions:
     runs-on: ubuntu-latest
