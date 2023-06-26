@@ -3,4 +3,4 @@ FROM python:3
 RUN  mkdir /app
 WORKDIR  /app
 COPY . .
-CMD ["python", "-u", "app/app.py"]
+CMD ["python", "-u", "app.py"]
