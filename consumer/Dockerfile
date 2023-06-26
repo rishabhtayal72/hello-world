@@ -4,4 +4,4 @@ RUN  mkdir consumer
 WORKDIR  /consumer
 COPY . .
 
-CMD ["python", "-u", "consumer/consumer.py"]
+CMD ["python", "-u", "consumer.py"]
