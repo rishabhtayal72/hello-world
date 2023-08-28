@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: wow-actions/potential-duplicates@v1.1.0
         with:
-          GITHUB_TOKEN: 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
+          GITHUB_TOKEN: ${{ secrets.github_token }}
           # Issue title filter work with anymatch https://www.npmjs.com/package/anymatch.
           # Any matched issue will stop detection immediately.
           # You can specify multi filters in each line.
