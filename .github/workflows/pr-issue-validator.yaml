@@ -43,8 +43,13 @@ jobs:
           exit 0
         fi
         pattern="((Fixes|Resolves) #[0-9]+)"
+        
+        echo "pattern = \n$pattern"
+        
         # Get the pull request body
         PR_BODY=$(jq -r '.pull_request.body' $GITHUB_EVENT_PATH)
+        
+        echo "pr_body = \n$PR_BODY"
 
         issue_num=$(echo "$PR_BODY" | grep -o -P "$pattern" | head -n1 | grep -o -E "[0-9]+")
         if [[ -z "$issue_num" ]]; then
