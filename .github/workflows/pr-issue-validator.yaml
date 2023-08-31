@@ -50,16 +50,16 @@ jobs:
         PR_BODY=$(jq -r '.pull_request.body' $GITHUB_EVENT_PATH)
         
         echo "PR_BODY = $PR_BODY"
-        
-        issue_num=$(echo "$PR_BODY" | grep -iE "$pattern" | head -n1 | grep -o -E "[0-9]+")
-        if [[ -z "$issue_num" ]]; then
-            issue_num="No issue number"
+        shopt -s nocasematch
+        if [[ "$PR_BODY" =~ "$pattern" ]]; then
+            issue_num=$(echo "$PR_BODY" | grep -iE "$pattern" | head -n1 | grep -o -E "[0-9]+")
+            echo "issue_num is : $issue_num"
+        else
             echo "No Issue number detected hence failing the PR Validation check."
             gh pr edit $PRNUM --add-label "PR:Issue-verification-failed"
             gh pr edit $PRNUM --remove-label "PR:Ready-to-Review"
             exit 1
         fi
-        echo "issue_num = $issue_num"
         
         IFS="/" read -r -a url_parts <<< "$url"
         
