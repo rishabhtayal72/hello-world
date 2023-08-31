@@ -54,6 +54,10 @@ jobs:
         issue_num=$(echo "$PR_BODY" | grep -o "$pattern" | head -n1 | grep -o -E "[0-9]+")
         if [[ -z "$issue_num" ]]; then
             issue_num="No issue number"
+            echo "No Issue number detected hence failing the PR Validation check."
+            gh pr edit $PRNUM --add-label "PR:Issue-verification-failed"
+            gh pr edit $PRNUM --remove-label "PR:Ready-to-Review"
+            exit 1
         fi
         echo "issue_num = $issue_num"
         
@@ -81,6 +85,8 @@ jobs:
             exit 0
           else
             echo "Issue #$issue_num is not open"
+            gh pr edit $PRNUM --add-label "PR:Issue-verification-failed"
+            gh pr edit $PRNUM --remove-label "PR:Ready-to-Review"
             exit 1
           fi
         else
