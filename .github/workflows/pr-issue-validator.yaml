@@ -43,6 +43,7 @@ jobs:
           exit 0
         fi
         pattern="((Fixes|Resolves) #[0-9]+)"
+        echo "pattern = $pattern"
         # Get the pull request body
         PR_BODY=$(jq -r '.pull_request.body' $GITHUB_EVENT_PATH)
         echo "PR_BODY = \n $PR_BODY"
