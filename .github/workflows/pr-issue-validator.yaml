@@ -51,7 +51,7 @@ jobs:
         
         echo "PR_BODY = $PR_BODY"
         
-        issue_num=$(echo "$PR_BODY" | grep -o -P "$pattern" | head -n1 | grep -o -E "[0-9]+")
+        issue_num=$(echo "$PR_BODY" | grep -o "$pattern" | head -n1 | grep -o -E "[0-9]+")
         if [[ -z "$issue_num" ]]; then
             issue_num="No issue number"
         fi
