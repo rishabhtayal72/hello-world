@@ -50,8 +50,9 @@ jobs:
         PR_BODY=$(jq -r '.pull_request.body' $GITHUB_EVENT_PATH)
         
         echo "PR_BODY = $PR_BODY"
-        shopt -s nocasematch
-        if [[ "$PR_BODY" =~ "$pattern" ]]; then
+        # shopt -s nocasematch
+        if echo "$PR_BODY" | grep -iEq "$pattern"; then
+        # if [[ "$PR_BODY" =~ "$pattern" ]]; then
             issue_num=$(echo "$PR_BODY" | grep -iE "$pattern" | head -n1 | grep -o -E "[0-9]+")
             echo "issue_num is : $issue_num"
         else
