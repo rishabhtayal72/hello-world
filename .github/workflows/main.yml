@@ -7,11 +7,11 @@ on:
 
 jobs:
   run:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - uses: wow-actions/potential-duplicates@v1.1.0
         with:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Issue title filter work with anymatch https://www.npmjs.com/package/anymatch.
           # Any matched issue will stop detection immediately.
           # You can specify multi filters in each line.
