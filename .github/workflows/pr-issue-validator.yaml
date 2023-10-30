@@ -29,7 +29,7 @@ jobs:
 
     - name: Validate Issue Reference
       env:
-        GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
+        GH_TOKEN: ${{ secrets.MY_PAT }}
         PR_BODY: ${{ github.event.pull_request.body }}
         url: ${{ github.event.pull_request.url }}
         PRNUM: ${{ github.event.pull_request.number }}
