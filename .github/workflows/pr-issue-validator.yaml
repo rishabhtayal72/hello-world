@@ -27,6 +27,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
+        repository: rishabhtayal72/hello-world
         token: ${{ secrets.MY_PAT }}
 
     - name: Validate Issue Reference
