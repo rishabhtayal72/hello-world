@@ -48,6 +48,10 @@ jobs:
         set -x
         if [[ "$TITLE" == *"doc:"* || "$TITLE" == *"docs:"* || "$TITLE" == *"chore:"* ]]; then
           echo "Skipping validation as this is a PR for documentation or chore."
+          if [[ $forked == true ]]; then
+            echo "PR:Ready-to-Review, exiting gracefully"
+            exit 0
+          fi
           gh pr edit $PRNUM --remove-label "PR:Issue-verification-failed"
           gh pr edit $PRNUM --add-label "PR:Ready-to-Review"
           exit 0
@@ -67,6 +71,10 @@ jobs:
             echo "issue_num is : $issue_num"
         else
             echo "No Issue number detected hence failing the PR Validation check."
+            if [[ $forked == true ]]; then
+              echo "PR:Issue-verification-failed, exiting forcefully!"
+              exit 1
+            fi
             gh pr edit $PRNUM --add-label "PR:Issue-verification-failed"
             gh pr edit $PRNUM --remove-label "PR:Ready-to-Review"
             exit 1
@@ -91,11 +99,19 @@ jobs:
           if [[ $(echo "$text" | jq -r '.state') == "open" ]]; then
             echo "Issue #$issue_num is open"
             echo "Issue reference found in the pull request body."
+            if [[ $forked == true ]]; then
+              echo "PR:Ready-to-Review, exiting gracefully"
+              exit 0
+            fi
             gh pr edit $PRNUM --remove-label "PR:Issue-verification-failed"
             gh pr edit $PRNUM --add-label "PR:Ready-to-Review"
             exit 0
           else
             echo "Issue #$issue_num is not open"
+            if [[ $forked == true ]]; then
+              echo "PR:Issue-verification-failed, exiting forcefully!"
+              exit 1
+            fi
             gh pr edit $PRNUM --add-label "PR:Issue-verification-failed"
             gh pr edit $PRNUM --remove-label "PR:Ready-to-Review"
             exit 1
@@ -104,6 +120,10 @@ jobs:
             echo "Invalid Response Code obtained - error code: $response_code"
             echo "No valid issue reference found in the pull request body."
             gh pr comment $PRNUM --body "PR is not linked to any issue, please make the corresponding changes in the body."
+            if [[ $forked == true ]]; then
+              echo "PR:Issue-verification-failed, exiting forcefully!"
+              exit 1
+            fi
             gh pr edit $PRNUM --add-label "PR:Issue-verification-failed"
             gh pr edit $PRNUM --remove-label "PR:Ready-to-Review"
             exit 1
