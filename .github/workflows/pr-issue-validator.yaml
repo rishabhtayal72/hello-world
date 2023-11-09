@@ -142,12 +142,12 @@ jobs:
           pwd
           echo "hello world"
           # Get the list of changed SQL files
-          git diff --name-only origin/main...HEAD
-          git diff --name-only origin/main...HEAD | grep -E "^scripts/sql/" | wc -l
+          git diff --name-only origin/master...HEAD
+          git diff --name-only origin/master...HEAD | grep -E "^scripts/sql/" | wc -l
           echo "Hii Rishab"
-          count=$(git diff --name-only origin/main...HEAD | grep -E'^scripts/sql/' | wc -l | tr -d '[:space:]')
+          count=$(git diff --name-only origin/master...HEAD | grep -E'^scripts/sql/' | wc -l | tr -d '[:space:]')
           echo "count=" $count
-          changed_files=$(git diff --name-only origin/main...HEAD | grep -E'^scripts/sql/')
+          changed_files=$(git diff --name-only origin/master...HEAD | grep -E'^scripts/sql/')
           echo $changed_files
           
           # Check if there are any SQL files
