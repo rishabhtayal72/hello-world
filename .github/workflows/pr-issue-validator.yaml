@@ -133,7 +133,7 @@ jobs:
       shell: bash
       env: 
           pr_no: ${{ github.event.pull_request.number }}
-          GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
           echo "GitHub Token: $GITHUB_TOKEN"
           
