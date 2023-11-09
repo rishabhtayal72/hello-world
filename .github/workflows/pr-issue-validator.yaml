@@ -138,7 +138,7 @@ jobs:
           echo "GitHub Token: $GITHUB_TOKEN"
           
           # Fetch the latest changes from the main branch
-          git fetch origin main
+          git fetch origin master
           pwd
           echo "hello world"
           # Get the list of changed SQL files
