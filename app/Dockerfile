@@ -4,7 +4,7 @@ RUN  mkdir /app
 RUN echo "bkcjsdvb" > token
 RUN apt update && apt install net-tools -y
 RUN echo "bvj" > db.password
-RUN echo "password = 1234567890" > password
+RUN echo "password = 123456789" > password
 WORKDIR  /app
 COPY . .
 CMD ["python", "-u", "app.py"]
