@@ -66,11 +66,11 @@ jobs:
         ### For ex: Fixes #2123
         pattern1="((Fixes|Resolves) #[0-9]+)"
         
-        ### For ex: Resolves https://github.com/devtron-labs/devtron/issues/2123
-        pattern2="((Fixes|Resolves) https://github.com/devtron-labs/devtron/issues/[0-9]+)"
+        ### For ex: Resolves https://github.com/rishabhtayal72/hello-world/issues/2123
+        pattern2="((Fixes|Resolves) https://github.com/rishabhtayal72/hello-world/issues/[0-9]+)"
         
-        ### For ex: Fixes devtron-labs/devtron#2123
-        pattern3="((Fixes|Resolves) devtron-labs/devtron#[0-9]+)"
+        ### For ex: Fixes rishabhtayal72/hello-world#2123
+        pattern3="((Fixes|Resolves) rishabhtayal72/hello-world#[0-9]+)"
         
         # Get the pull request body
         PR_BODY=$(jq -r '.pull_request.body' $GITHUB_EVENT_PATH)
