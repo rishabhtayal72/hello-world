@@ -7,10 +7,9 @@ on:
       - synchronize
       - edited
       - reopened
-    branches:
+    branches:    
       - 'main'
       - 'release-**'
-      - 'master'
     # paths-ignore:
     #   - 'docs/**'
     #   - '.github/'
@@ -22,24 +21,28 @@ on:
 jobs:
   validate-PR-issue:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+      pull-requests: write
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v2
       with:
+        ref: ${{ github.event.pull_request.head.sha }}
         fetch-depth: 0
-        
-      #   repository: rishabhtayal72/hello-world
-      #   token: ${{ secrets.MY_PAT }}
+
 
     - name: Validate Issue Reference
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ github.token }}
         PR_BODY: ${{ github.event.pull_request.body }}
         url: ${{ github.event.pull_request.url }}
         PRNUM: ${{ github.event.pull_request.number }}
         TITLE: ${{ github.event.pull_request.title }}
       run: |
+        set -x
         echo "base or target repo : ${{ github.event.pull_request.base.repo.full_name }}"
         echo "head or source repo : ${{ github.event.pull_request.head.repo.full_name }}"
         if [[ ${{ github.event.pull_request.head.repo.full_name }} == ${{ github.event.pull_request.base.repo.full_name }} ]]; then
@@ -48,9 +51,8 @@ jobs:
           export forked=true
         fi
         echo "forked: $forked"
-        set -x
-        if [[ "$TITLE" == *"doc:"* || "$TITLE" == *"docs:"* || "$TITLE" == *"chore:"* ]]; then
-          echo "Skipping validation as this is a PR for documentation or chore."
+        if [[ "$TITLE" == *"doc:"* || "$TITLE" == *"docs:"* || "$TITLE" == *"misc:"* || "$TITLE" == *"release:"* || "$TITLE" == *"Release:"*  ]]; then
+          echo "Skipping validation as this is a PR for documentation or misc."
           if [[ $forked == true ]]; then
             echo "PR:Ready-to-Review, exiting gracefully"
             exit 0
@@ -59,18 +61,36 @@ jobs:
           gh pr edit $PRNUM --add-label "PR:Ready-to-Review"
           exit 0
         fi
-        pattern="((Fixes|Resolves) #[0-9]+)"
         
-        echo "pattern = $pattern"
+        ### For ex: Fixes #2123
+        pattern1="((Fixes|Resolves) #[0-9]+)"
+        
+        ### For ex: Resolves https://github.com/devtron-labs/devtron/issues/2123
+        pattern2="((Fixes|Resolves) https://github.com/devtron-labs/devtron/issues/[0-9]+)"
+        
+        ### For ex: Fixes devtron-labs/devtron#2123
+        pattern3="((Fixes|Resolves) devtron-labs/devtron#[0-9]+)"
         
         # Get the pull request body
         PR_BODY=$(jq -r '.pull_request.body' $GITHUB_EVENT_PATH)
-        
         echo "PR_BODY = $PR_BODY"
-        # shopt -s nocasematch
-        if echo "$PR_BODY" | grep -iEq "$pattern"; then
-        # if [[ "$PR_BODY" =~ "$pattern" ]]; then
-            issue_num=$(echo "$PR_BODY" | grep -iE "$pattern" | head -n1 | grep -o -E "[0-9]+")
+
+        ### Checks if PR_BODY matches pattern1 or pattern2 or pattern3 or none
+        ### grep -i (case insensitive) -E (enables extended regular expression in grep) -q (this option suppresses normal output)
+        if echo "$PR_BODY" | grep -iEq "$pattern1"; then
+            ### Here we are taking only the numerical value ie. issue number
+            ### head -n1 only prints the 1st line.
+            ### grep -o -E "[0-9]+ basically outputs only the number between [0-9]+
+            echo "$PR_BODY" | grep -iE "$pattern1" | head -n1 | grep -o -E "[0-9]+" | tr -d '\r\n' > issue_num
+            issue_num=$(cat issue_num)
+            echo "issue_num is : $issue_num"
+        elif echo "$PR_BODY" | grep -iEq "$pattern2"; then
+            echo "$PR_BODY" | grep -iE "$pattern2" | head -n1 | awk -F '/' '{print $NF}' | tr -d '\r\n' > issue_num
+            issue_num=$(cat issue_num)
+            echo "issue_num is : $issue_num"
+        elif echo "$PR_BODY" | grep -iEq "$pattern3"; then
+            echo "$PR_BODY" | grep -iE "$pattern3" | head -n1 | awk -F '#' '{print $NF}' | tr -d '\r\n' > issue_num
+            issue_num=$(cat issue_num)
             echo "issue_num is : $issue_num"
         else
             echo "No Issue number detected hence failing the PR Validation check."
@@ -82,7 +102,10 @@ jobs:
             gh pr edit $PRNUM --remove-label "PR:Ready-to-Review"
             exit 1
         fi
-        
+
+        ### Here we are setting the Internal Field Separator to "/"
+        ### read -r -> reads input from variable $url
+        ### -a url_parts -> tells read command to store input into an array named url_parts[]
         IFS="/" read -r -a url_parts <<< "$url"
         
         # Remove the last two elements (repos and the issue number)
@@ -135,58 +158,79 @@ jobs:
       shell: bash
       env: 
           pr_no: ${{ github.event.pull_request.number }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
       run: |
-          echo "GitHub Token: $GITHUB_TOKEN"
+        
+        # Fetch the latest changes from the main branch
+        git fetch origin main
+
+        # Get the list of changed files
+        git diff origin/main...HEAD --name-only > diff
+
+        echo "Changed files:"
+        cat diff
+
+        echo "Changed SQL files-:"
+        # Filter SQL files from the list of changed files
+        awk '/scripts\/sql\//' diff
+
+        # Count the number of changed SQL files in the 'scripts/sql' directory
+        count=$(awk '/scripts\/sql\//' diff | wc -l)
+
+        # Check if no SQL files were changed
+        if [[ $count == "0" ]]; then 
+          echo "No SQL files were added, Exiting from this action."
+          exit 0
+        fi
+
+        # Iterate through each changed SQL file
+        for filename in $(awk '/scripts\/sql\//' diff); do
+          echo "Checking File: $filename"
           
-          # Fetch the latest changes from the main branch
-          git fetch origin master
-          pwd
-          echo "hello world"
-          # Get the list of changed SQL files
-          git diff --name-only origin/master...HEAD
-          git diff --name-only origin/master...HEAD | grep -E "^scripts/sql/" | wc -l
-          echo "Hii Rishab"
-          count=$(git diff --name-only origin/master...HEAD | grep -E'^scripts/sql/' | wc -l | tr -d '[:space:]')
-          echo "count=" $count
-          changed_files=$(git diff --name-only origin/master...HEAD | grep -E'^scripts/sql/')
-          echo $changed_files
-          
-          # Check if there are any SQL files
-          if [[ $changed_files == 0 ]] ; then
-              echo "No SQL files found. Skipping this action."
-              exit 0
-          else 
-              echo "Find files. Running this action"
+          # Check if the SQL file name is in the correct format (i.e., it ends with either '.up.sql' or '.down.sql')
+          if [[ "$filename" =~ \.(up|down)\.sql$ ]]; then
+
+            # Print a message that the file name is in the correct format
+            echo "File name: $filename is in the correct format"
+          else
+            # Print an error message
+            echo "Error: The SQL file name is not in the correct format: $filename."
+
+            # Post a comment on a GitHub pull request with the error message
+            gh pr comment $pr_no --body "The SQL file name: $filename is not in the correct format."
+
+            # Exit the script with a non-zero status code
+            exit 1 
           fi
-          # Loop through changed SQL files
-          for filename in $changed_files; do
-            echo "Checking File: $filename"
-            if [[ "$filename" =~ \.(up|down)\.sql$ ]]; then
-              echo "File name is in the correct format: $filename"
-            else
-              echo "Error: File name is not in the correct format: $filename."
-              gh pr comment $pr_no --body "Error: The SQL file name is not in the correct format: $filename."
-              exit 1
-            fi
-            # Extract migration number
-            migration_no=$(basename $filename | cut -d "_" -f 1)
-            echo "Migration Number: $migration_no"
-            migration_no=$(echo $filename | cut -d "/" -f 3 | cut -d "_" -f 1)
-            echo "Migration Number: $migration_no"
-            
-            migration_files_of_this_no=$(ls | grep -iE $migration_no | wc -l)
-            cd ../../
-            echo "Current directory: $(pwd)"
-            
-            echo "Migration Number: $migration_no"
-            echo "Number of files with this migration number: $migration_files_of_this_no"
-            
-            if [[ $migration_files_of_this_no == "2" ]] ; then
-              echo "All looks good for this migration number."
-            else 
-               echo "Error: Migration number is repeated."
-               gh pr comment $pr_no --body "Error: The SQL file number is duplicated: $migration_no."
-               exit 1
-            fi
-          done
+
+          # Navigate to the SQL files directory
+          sql_dir="scripts/sql"
+          echo "Current directory: $(pwd)"
+          cd "$sql_dir"
+          echo "SQL files directory: $(pwd)"
+          
+          # Extract the migration number from the SQL file name
+          migration_no=$(echo "$filename" | cut -d "/" -f 3 | cut -d "_" -f 1)
+          echo "Migration Number: $migration_no"
+          
+          # Count the number of files with the same migration number
+          migration_files_present_of_this_no=$(ls | cut -d "_" -f 1 | grep -w -c "$migration_no")
+
+          # Navigate back to the original directory
+          cd ../..
+          
+          # Check the conditions based on the number of files with the same migration number
+          if [[ $migration_files_present_of_this_no == "2" ]]; then
+            echo "All looks good for this migration number."
+          elif [[ $migration_files_present_of_this_no == "1" ]]; then
+            # Only one file is present for this migration number
+            echo "Only single migration file was present for migration no.: $migration_no. either up or down migration is missing! EXITING"
+            gh pr comment $pr_no --body "Error: Only a single migration file was present for this number: $migration_no."
+            exit 1
+          else 
+            # Migration number is repeated
+            echo "Error: Migration number is repeated."
+            gh pr comment $pr_no --body "Error: The SQL file number: $migration_no is duplicated"
+            exit 1
+          fi
+        done
