@@ -1,27 +1,48 @@
-- name: Find linked issues
-      id: find-linked-issues
-      uses: Ismoh-Games/find-linked-issues@v1
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        repository: ${{ github.repository }}
-        pull-request-number: ${{ github.event.pull_request.number }}
-        pull-request-body: ${{ github.event.pull_request.body }}
-        copy-issues-labels: true # optional
-        include-closed-issues: true # optional
-    
-    # Use the output from the `find-linked-issues` step
-    - name: Use the output
-      run: |
-        echo "is-pull-request-linked-to-issues: ${{ steps.find-linked-issues.outputs.is-pull-request-linked-to-issues }}"
-        echo "linked-issues: ${{ steps.find-linked-issues.outputs.linked-issues }}"
-        echo "pull-request-labels: ${{ steps.find-linked-issues.outputs.pull-request-labels }}"
+name: Validate Pull Request
+on: 
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - edited
+      - reopened
+    branches:    
+      - 'main'
+      - 'release-**'
+      - 'master'
+jobs:
+  validate-PR-issue:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+      pull-requests: write
 
-    - name: Conditional step
-      if: ${{ steps.find-linked-issues.outputs.is-pull-request-linked-to-issues == 'True' }}
-      run: |
-        echo "Pull request is linked to issues"
-
-    - name: Another conditional step
-      if: ${{ steps.find-linked-issues.outputs.is-pull-request-linked-to-issues == 'False' }}
-      run: |
-        exit 1
+    steps:      
+      - name: Find linked issues
+            id: find-linked-issues
+            uses: Ismoh-Games/find-linked-issues@v1
+            with:
+              token: ${{ secrets.GITHUB_TOKEN }}
+              repository: ${{ github.repository }}
+              pull-request-number: ${{ github.event.pull_request.number }}
+              pull-request-body: ${{ github.event.pull_request.body }}
+              copy-issues-labels: true # optional
+              include-closed-issues: true # optional
+          
+          # Use the output from the `find-linked-issues` step
+          - name: Use the output
+            run: |
+              echo "is-pull-request-linked-to-issues: ${{ steps.find-linked-issues.outputs.is-pull-request-linked-to-issues }}"
+              echo "linked-issues: ${{ steps.find-linked-issues.outputs.linked-issues }}"
+              echo "pull-request-labels: ${{ steps.find-linked-issues.outputs.pull-request-labels }}"
+      
+          - name: Conditional step
+            if: ${{ steps.find-linked-issues.outputs.is-pull-request-linked-to-issues == 'True' }}
+            run: |
+              echo "Pull request is linked to issues"
+      
+          - name: Another conditional step
+            if: ${{ steps.find-linked-issues.outputs.is-pull-request-linked-to-issues == 'False' }}
+            run: |
+              exit 1
