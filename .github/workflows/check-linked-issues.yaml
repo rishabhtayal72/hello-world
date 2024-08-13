@@ -17,5 +17,7 @@ jobs:
         with:
           exclude-branches: "release/**, dependabot/**"
       # OPTIONAL: Use the output from the `check-linked-issues` step
-      - name: Get the output
+      - name: Get the linked issues count
         run: echo "How many linked issues? ${{ steps.check-linked-issues.outputs.linked_issues_count }}"
+      - name: Get the issues
+        run: echo "ISSUES  ${{ steps.check-linked-issues.outputs.issues }}"
