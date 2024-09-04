@@ -18,7 +18,9 @@ on:
     #   - 'charts/'
     #   - 'manifests/'
     #   - 'sample-docker-templates/'
-  
+    
+permissions: write-all
+
 jobs:
   validate-PR-issue:
     runs-on: ubuntu-latest
