@@ -1,15 +1,15 @@
-name: Validate Pull Request
+name: Ignore this action for now!
 on: 
   pull_request:
     types:
-      - opened
-      - synchronize
-      - edited
+    #   - opened
+    #   - synchronize
+    #   - edited
       - reopened
     branches:    
-      - 'main'
-      - 'release-**'
-      - 'master'
+      - 'mainn'
+      # - 'release-**'
+      # - 'master'
 jobs:
   validate-PR-issue:
     runs-on: ubuntu-latest
