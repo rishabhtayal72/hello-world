@@ -106,7 +106,7 @@ jobs:
             issue_num=$(cat issue_num)
             echo "issue_num is : $issue_num"
         elif echo "$PR_BODY" | grep -iEq "$pattern5|$pattern6|$pattern7|$pattern8"; then
-            url="$(echo "$PR_BODY" | grep -iE "$pattern7|$pattern8" | head -n1 | awk '{print $2}')"
+            url="$(echo "$PR_BODY" | grep -iE "$pattern5|$pattern6|$pattern7|$pattern8" | head -n1 | awk '{print $2}')"
             echo "$PR_BODY" | grep -oP "$pattern4" | head -n1 | grep -oP '#\K[0-9]+' | tr -d '\r\n' > issue_num
             issue_num=$(cat issue_num)
             echo "issue_num is : $issue_num"
